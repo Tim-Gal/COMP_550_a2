@@ -5,11 +5,6 @@ Developed for Python 2. Automatically converted to Python 3; may result in bugs.
 """
 import xml.etree.cElementTree as ET
 import codecs
-from nltk.corpus import wordnet as wn
-from nltk.wsd import lesk
-from nltk.stem import WordNetLemmatizer
-from nltk import word_tokenize, pos_tag
-from nltk.corpus import stopwords
 
 
 class WSDInstance:
@@ -77,28 +72,6 @@ def to_ascii(s):
     return codecs.encode(s, 'ascii', 'ignore').decode('ascii')
 
 
-def preprocess_sentence(sentence):
-    lemmatizer = WordNetLemmatizer()
-    stop_words = set(stopwords.words('english'))
-    # Tokenize and lemmatize
-    return [lemmatizer.lemmatize(word) for word in word_tokenize(sentence) if word.isalpha() and word not in stop_words]
-
-
-def most_frequent_sense(lemma):
-    synsets = wn.synsets(lemma)
-    return synsets[0].lemmas()[0].key() if synsets else None
-
-
-def apply_lesk_algorithm(context_sentence, ambiguous_word):
-    return lesk(context_sentence, ambiguous_word)
-
-
-def calculate_accuracy(predictions, gold_standard):
-    correct_predictions = sum(pred in gold_standard[i] for i, pred in predictions.items())
-    accuracy = correct_predictions / len(gold_standard)
-    return accuracy
-
-
 if __name__ == '__main__':
     data_f = 'multilingual-all-words.en.xml'
     key_f = 'wordnet.en.key'
@@ -110,33 +83,5 @@ if __name__ == '__main__':
     test_instances = {k: v for (k, v) in test_instances.items() if k in test_key}
 
     # read to use here
-    #print(len(dev_instances))  # number of dev instances
-    #print(len(test_instances))  # number of test instances
-
-    # Implement the most frequent sense baseline and collect predictions
-    baseline_predictions = {}
-    for instance_id, instance in dev_instances.items():
-        lemma = instance.lemma
-        baseline_predictions[instance_id] = most_frequent_sense(lemma)
-    print(baseline_predictions)
-
-    # Calculate baseline accuracy
-    baseline_accuracy = calculate_accuracy(baseline_predictions, dev_key)
-    print(f"Baseline Accuracy: {baseline_accuracy:.2%}")
-
-    # Apply Lesk's algorithm and collect predictions
-    lesk_predictions = {}
-    for instance_id, instance in dev_instances.items():
-        context = preprocess_sentence(' '.join(instance.context))
-        lesk_sense = apply_lesk_algorithm(context, instance.lemma)
-        if lesk_sense:
-            # Find the lemma in the synset that matches the target word
-            matched_lemma = next((lemma for lemma in lesk_sense.lemmas() if lemma.name() == instance.lemma), None)
-            if matched_lemma:
-                # Get the sense key for the matched lemma
-                lesk_predictions[instance_id] = matched_lemma.key()
-    print(lesk_predictions)
-
-    # Calculate Lesk accuracy
-    lesk_accuracy = calculate_accuracy(lesk_predictions, dev_key)
-    print(f"Lesk Accuracy: {lesk_accuracy:.2%}")
+    print(len(dev_instances))  # number of dev instances
+    print(len(test_instances))  # number of test instances
