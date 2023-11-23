@@ -78,7 +78,7 @@ if __name__ == '__main__':
     dev_instances, test_instances = load_instances(data_f)
     dev_key, test_key = load_key(key_f)
 
-    # IMPORTANT: keys contain fewer entries than the instances; need to remove them
+    # keys contain fewer entries than the instances; need to remove them
     dev_instances = {k: v for (k, v) in dev_instances.items() if k in dev_key}
     test_instances = {k: v for (k, v) in test_instances.items() if k in test_key}
 
